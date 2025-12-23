@@ -1,22 +1,19 @@
-### Bangladesh University of Engineering and Technology
-### CSE 316 Report
+# A Low-Cost ATmega32-Based Embedded System for Automated Patient Queue and Health Data Management in Private Medical Chambers
 
-* * * * *
+This repository contains the implementation, documentation, and experimental artifacts for the embedded system developed to automate patient queue management and basic health data handling in private medical chambers using a low-cost **ATmega32** microcontroller.
 
+## Publication
+The work corresponding to this project has been published as an **arXiv preprint**:  
+https://doi.org/10.48550/arXiv.2511.06914
 
-
-**Doctor’s Private Chamber Entry Management**
-
-* * * * *
-
-
+## Academic Context
+- **Institution:** Bangladesh University of Engineering and Technology (BUET)
+- **Course:** CSE 316
 
 ***Submitted By***
 * Mahdi Hasnat Siyam (*1705003*)
 * Khandokar Md. Rahat Hossain (*1705024*)
 * Kawshik Kumar Paul (*1705043*)
-
-
 
 ***Project Supervisor***\
 Dr. A. B. M. Alim Al Islam\

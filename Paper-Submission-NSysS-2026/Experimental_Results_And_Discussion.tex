@@ -1,0 +1,79 @@
+\input{tables/results-table}
+
+We evaluated the assembled prototype along four axes, covering temperature accuracy, pulse
+accuracy, control-path latency and queue robustness under sustained cycling.
+Table~\ref{tab:experimental_results_table} summarises the outcomes, and
+Section~\ref{sec:threats} states what they do and do not establish. All measurements were taken on
+the bench prototype running the delivered offline firmware, with the ATmega32 on its internal
+8~MHz oscillator and all peripherals connected as in Section~\ref{sec:hardware}. Sensing accuracy
+was assessed against commercial reference instruments rather than laboratory standards, namely a
+digital clinical thermometer and a fingertip pulse oximeter, with readings taken from resting
+adult volunteers under normal indoor ambient conditions.
+
+\subsection{Sensing Accuracy}
+LM35 readings agreed with the reference thermometer to within $\pm 1^{\circ}$C across the range
+exercised, approximately $25$--$40^{\circ}$C, which spans room ambient through febrile body
+temperature. This is adequate for pre-screening and not adequate for diagnosis, since clinical
+electronic thermometers are held to laboratory accuracy limits measured in tenths of a
+degree~\cite{iso80601}. Three error sources plausibly account for the spread, and their remedies
+differ sharply. Quantisation contributes a hard floor of $0.25^{\circ}$C per LSB, which is small
+relative to the observed bound. Uncalibrated sensor tolerance contributes a fixed offset that a
+one-point calibration constant in firmware would largely remove. The over-clocked ADC of
+Section~\ref{sec:hardware} contributes an unquantified degradation, and of the three it is the
+cheapest to fix and the one we would address first.
+
+Pulse readings from the XD-58C agreed with the reference oximeter to within $\pm 3$~BPM under resting
+conditions. The dominant source of variation was motion and transient noise during finger placement.
+Readings taken immediately on contact were markedly less stable than those taken after a brief
+settling period, which is why the acquisition state enforces one. This is characteristic of the
+measurement principle rather than of this sensor, since photoplethysmographic amplitude and
+morphology vary strongly with probe pressure, perfusion and movement~\cite{allen2007ppg}. A subtler
+contributor is the time base. The sampling interval derives from delay loops clocked by the internal
+RC oscillator, specified to roughly $\pm 3\%$~\cite{microchip2020}, and a systematic 3\% interval
+error maps directly onto the computed rate, about 2~BPM at 70~BPM. A hardware timer with a crystal
+reference would remove this term, at the cost of the crystal the design deliberately omits.
+
+\subsection{Control-Path Latency and Queue Robustness}
+Responsiveness was measured end to end, from the physical press of the doctor's button to the
+appearance of the updated record on the console, so it includes debounce, queue access, string
+formatting and the full I\textsuperscript{2}C refresh. Observed latency remained below 1.2~s. Queue
+advancement happens once per consultation, so a sub-1.2~s response is imperceptible at that cadence.
+The relevant property is not that latency is small but that it is bounded and repeatable, which
+follows from the superloop architecture of Section~\ref{sec:firmware}. Note also that the debounce
+lockout is a deliberate 500~ms, so roughly half the measured latency is a design constant rather than
+computational cost.
+
+Queue integrity was exercised through repeated enqueue and dequeue cycles, checking after each that
+records emerged in entry order with none lost or duplicated. Ordering and record integrity held
+across sustained cycling, and the two-phase button semantics behaved correctly at the boundaries
+that matter in practice. A press against an empty queue produces the no-patient message rather than
+a stale or undefined record, and emptying the queue mid-consultation returns the console to that
+message rather than leaving the retired patient on screen. The bound here is capacity, not
+correctness. With 2~KB of SRAM against a 73-byte record, achievable depth is modest and fixed at
+build time, which is not the binding constraint for a waiting room holding a few tens of patients.
+For a longer record history, or any requirement to survive a power interruption, the persistent
+storage of Section~\ref{sec:limitations} becomes necessary rather than optional.
+
+\subsection{Threats to Validity and Scope}
+\label{sec:threats}
+The figures above are easy to over-read, so we state their limits explicitly.
+
+\textbf{The sensing results are a bench comparison, not a clinical accuracy study.} Readings were
+compared against consumer-grade instruments, themselves uncalibrated against a traceable standard,
+on a small group of resting adult volunteers. We therefore report observed deviation bounds rather
+than statistical agreement measures such as Bland--Altman limits, which would require a
+prespecified population and sample size, and the $\pm 1^{\circ}$C and $\pm 3$~BPM figures are
+engineering bounds establishing fitness for triage, not validated accuracy claims. Pulse accuracy
+under exertion, in patients with poor peripheral perfusion, or in paediatric and elderly subjects
+was not assessed, and photoplethysmography degrades in each case~\cite{allen2007ppg}.
+
+\textbf{No deployment study was conducted.} The claim that a guided sequential dialogue lets a
+non-technical patient self-register unaided is a design argument supported by the structure of the
+state machine, not a tested result. Completion rate, error rate, time-to-complete and accessibility
+for patients with low literacy or impaired vision all remain open, and a field study measuring them
+is the most valuable single piece of future work.
+
+\textbf{Throughput gains are argued, not measured.} That booth-side acquisition recovers
+consultation time follows from moving acquisition off the physician's critical path, and reported
+consultation lengths~\cite{das2021appointment} indicate the magnitude at stake, but we did not
+measure consultations with and without the system.

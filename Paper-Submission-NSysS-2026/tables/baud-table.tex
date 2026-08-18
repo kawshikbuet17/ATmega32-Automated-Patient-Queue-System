@@ -1,0 +1,18 @@
+\begin{table}[t]
+  \caption{UART divisor error at the factory 1~MHz clock versus the fuse-selected
+    8~MHz clock. Rows marked $\dagger$ exceed the datasheet's recommended
+    $\pm 2.0\%$ receiver error tolerance~\cite{microchip2020}.}
+  \label{tab:baud}
+  \small
+  \begin{tabular}{@{}llcrrr@{}}
+    \toprule
+    $f_{\mathrm{osc}}$ & Target & U2X & UBRR & Actual & Error \\
+    \midrule
+    1~MHz & 38400 & 0 & 1  & 31250 & $-18.6\%^{\dagger}$ \\
+    1~MHz & 38400 & 1 & 2  & 41667 & $+8.5\%^{\dagger}$ \\
+    \midrule
+    8~MHz & 38400 & 0 & 12 & 38462 & $+0.16\%$ \\
+    8~MHz & 38400 & 1 & 25 & 38462 & $+0.16\%$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}

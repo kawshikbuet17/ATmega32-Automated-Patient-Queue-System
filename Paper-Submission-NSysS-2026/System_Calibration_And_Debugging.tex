@@ -1,0 +1,39 @@
+The most consequential configuration decision in the build was the system clock, and the
+reasoning is reproducible from the datasheet, so we set it out rather than leave it as an
+implementation footnote.
+
+The ATmega32 derives its UART bit clock by integer division of the system clock. In
+standard mode the divisor register is
+$\mathrm{UBRR} = \lfloor f_{\mathrm{osc}} / (16 \times \mathrm{BAUD}) + 0.5 \rfloor - 1$,
+with the factor 16 replaced by 8 when the double-speed bit U2X is
+set~\cite{microchip2020}. Because UBRR is an integer, the achievable baud rate is
+quantised, and the quantisation is coarse when $f_{\mathrm{osc}}$ is low. The datasheet's
+recommended ceiling on total receiver error for an 8-bit frame with 16$\times$
+oversampling is $\pm 2.0\%$~\cite{microchip2020}.
+
+\input{tables/baud-table}
+
+Table~\ref{tab:baud} works the arithmetic through. At the factory-default 1~MHz clock,
+38400~bps is simply not reachable: the nearest divisor in standard mode yields 31250~bps,
+an error of $-18.6\%$, roughly nine times the recommended limit, and double-speed mode
+improves this only to $+8.5\%$, still four times over. The 9600~bps case is salvageable but
+only in double-speed mode, standard mode giving $-7.0\%$.
+
+Raising the clock to 8~MHz resolves the problem outright: 38400~bps is then reachable with
+an error of $+0.16\%$ in either mode, comfortably inside the ceiling. Reliability was
+significantly increased by using the internal 8~MHz oscillator and double-speed UART.
+
+Two aspects of how we got there are worth recording, because both are the kind of
+constraint that shapes a low-cost build. The change was made by programming the CKSEL fuse
+bits rather than by fitting an external crystal, which was unavailable to us at the time;
+fuse programming adds no components and requires no board changes, but a mis-set fuse can
+leave the part unable to clock itself and recoverable only through high-voltage
+programming, so it is not a reversible experiment. And the internal oscillator that makes
+this convenient is specified to roughly $\pm 3\%$~\cite{microchip2020}, an order of
+magnitude looser than a crystal: adequate for UART framing once the divisor error is this
+small, but propagating into every delay-loop-derived interval in the firmware.
+
+The serial path characterised here is wired out but unused by the delivered firmware, which
+operates entirely offline per R1. Establishing that 38400~bps is attainable matters because
+it keeps the optional uplink of Section~\ref{sec:limitations} available without a further
+hardware revision.

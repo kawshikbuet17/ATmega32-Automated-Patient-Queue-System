@@ -1,0 +1,57 @@
+Work adjacent to this system falls into three groups, covering networked health monitoring,
+embedded queue management, and low-cost stand-alone vital measurement.
+Table~\ref{tab:comparison} positions the present design against a representative sample of
+each. The pattern it makes visible is that sensing and queueing have been treated as separate
+problems, and that the systems which integrate sensing do so by adding a network.
+
+\input{tables/comparison-table}
+
+\subsection{Networked Health Monitoring}
+The largest group couples edge sensing to a remote back end. Dharmoji et al.~\cite{irjet2020}
+pair an ESP8266 with an Arduino to read pulse and temperature and publish them to ThingSpeak,
+so readings are viewed through a cloud dashboard rather than at the point of care. Rath et
+al.~\cite{rath2021} work at larger scale, proposing a body-sensor-network architecture for
+hospital management with real-time monitoring and prescription handling, and evaluating MQTT
+against CoAP in NS-3 simulation to choose a transport. Talluri et al.~\cite{hrtemp2019} read
+heart rate and body temperature from an Arduino Uno and surface them through a web
+application.
+
+The remote-access capability these systems provide is one our design deliberately gives up, and the
+trade-off they accept is that the reporting path is also the display path. Rath et al. treat
+reliability and latency under hospital-scale traffic as the governing concerns, which is the wrong
+framing for a chamber where the physician is three metres from the patient.
+
+\subsection{Embedded Queue and Token Management}
+The second group automates service order without clinical sensing. The electronic queue control
+system of Gummadi Lahari et al.~\cite{eqc2022} is the closest offline analogue to our queue
+component. An 8-bit PIC maintains FIFO order across service counters and drives an LCD showing
+counter and token number, entirely in software and with no external infrastructure. Arun and
+Priyesh~\cite{qgsm2013} build queue handling around a GSM link, reintroducing a network dependency
+and a per-message cost. Chin et al.~\cite{arpn2019} address a different limitation, that strict FIFO
+ignores patients who should be prioritised, and propose an Arduino-based manager that automatically
+advances handicapped persons.
+
+All three show that queue arbitration is comfortably within reach of an 8-bit part. None forms a
+patient record or captures a physiological measurement, so a chamber deploying any of them would
+still take vitals during the consultation. The priority mechanism of Chin et al. is a capability our
+strict-FCFS design lacks, and Section~\ref{sec:limitations} returns to it.
+
+\subsection{Stand-Alone Vital Measurement}
+The third group establishes that useful vital acquisition is achievable with inexpensive analog
+parts. The LM35 is the conventional choice for body temperature because its output is linear at
+10~mV/$^{\circ}$C and needs no linearisation or external conditioning before reaching a
+microcontroller ADC~\cite{ti2022}. Optical pulse measurement is less forgiving.
+Photoplethysmography infers a pulse from light absorbed by perfused tissue, and the waveform is
+sensitive to probe placement, contact pressure, perfusion and above all to motion, which produces
+artefacts overlapping the signal band that simple filtering cannot remove~\cite{allen2007ppg}. That
+sensitivity is intrinsic to the measurement principle rather than to low-cost hardware, it sets the
+accuracy ceiling reported in Section~\ref{sec:results}, and it is why the patient-side workflow
+enforces a settling period. Expectations should be calibrated accordingly, since clinical electronic
+thermometers are held to laboratory accuracy limits measured in tenths of a
+degree~\cite{iso80601}, several times tighter than an uncalibrated LM35 and a 10-bit ADC deliver.
+
+The gap this work addresses is integration rather than any individual capability. Queue
+arbitration, guided data entry and vital acquisition have each been demonstrated on comparable
+hardware. What has not is all three composed into one offline workflow on a single 8-bit
+microcontroller, with the two interfaces separated so registration and consultation proceed
+concurrently.

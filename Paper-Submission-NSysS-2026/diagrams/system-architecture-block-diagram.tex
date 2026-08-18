@@ -1,0 +1,67 @@
+% Compact TikZ block diagram of the dual-corner architecture.
+\begin{figure*}[t]
+\centering
+\resizebox{0.92\textwidth}{!}{%
+\begin{tikzpicture}[
+    node distance=1cm and 1.3cm,
+    box/.style={rectangle, draw, rounded corners, minimum width=2.6cm,
+                minimum height=0.8cm, align=center},
+    group/.style={rectangle, draw, rounded corners, inner sep=5pt},
+    arrow/.style={-{Latex[length=3mm]}, thick}
+]
+
+% Patient corner group (2x2 layout to save vertical space)
+\node[group, label=above:{\textbf{Patient's Corner}}] (patientgroup) {
+    \begin{tikzpicture}[node distance=0.4cm and 0.4cm]
+        \node[box] (keypad) {$4\times8$ Alphanumeric\\Keypad};
+        \node[box, right=of keypad] (temp) {LM35 Temp.\\Sensor};
+        \node[box, below=of keypad] (pulse) {XD-58C\\Pulse Sensor};
+        \node[box, right=of pulse] (plcd) {$16\times2$ LCD\\(4-bit parallel)};
+    \end{tikzpicture}
+};
+
+% MCU
+\node[box, right=3.4cm of patientgroup] (mcu)
+     {ATmega32\\8~MHz internal RC\\(queue, ADC, UART)};
+
+% Doctor corner group
+\node[group, right=3.2cm of mcu, label=above:{\textbf{Doctor's Corner}}] (doctorgroup) {
+    \begin{tikzpicture}[node distance=0.4cm]
+        \node[box] (dlcd) {$16\times2$ LCD\\(I\textsuperscript{2}C)};
+        \node[box, below=of dlcd] (btn) {Call-Next Button};
+    \end{tikzpicture}
+};
+
+% Arrows
+\draw[arrow] (patientgroup.east) --
+      node[above, yshift=2pt, align=center]{Fields \&\\sensor samples}
+      (mcu.west);
+\draw[arrow] (mcu.east) --
+      node[above, yshift=2pt, align=center]{Dequeued\\record}
+      (doctorgroup.west);
+\draw[arrow] (doctorgroup.south west) to[bend left=10]
+      node[below, yshift=-2pt]{Dequeue} (mcu.south east);
+
+% Optional wireless extension (not used by the delivered firmware)
+\node[box, below=0.9cm of mcu] (bt) {Optional HC-05 / UART\\(future work)};
+\draw[arrow, dashed] (mcu.south) -- (bt.north);
+
+\end{tikzpicture}%
+}
+\caption{Dual-corner architecture. One ATmega32 mediates between the patient's
+  corner (data entry and sensing) and the doctor's corner (review and queue
+  advancement), so the queue is a single in-memory structure with one writer. The
+  dashed UART path is wired out but unused.}
+\Description{A block diagram with three groups arranged left to right. The left
+group, labelled Patient's Corner, is a box containing four smaller boxes in a two
+by two arrangement, holding a four by eight alphanumeric keypad, an LM35 temperature
+sensor, an XD-58C pulse sensor, and a sixteen by two LCD in four-bit parallel
+mode. A thick arrow labelled fields and sensor samples runs right from this group
+to a central box labelled ATmega32, eight megahertz internal RC, queue, ADC and
+UART. From the ATmega32 a thick arrow labelled dequeued record runs right to the
+third group, labelled Doctor's Corner, which contains a sixteen by two I2C LCD
+and a call-next button. A return arrow labelled dequeue curves back from the
+Doctor's Corner to the ATmega32. Below the ATmega32, a dashed arrow points down
+to a box labelled optional HC-05 slash UART, future work.}
+\label{fig:system-architecture-block-diagram}
+\end{figure*}

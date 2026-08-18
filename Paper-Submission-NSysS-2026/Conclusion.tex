@@ -1,0 +1,22 @@
+This paper presented a stand-alone embedded system that automates patient queue handling and
+pre-consultation vital-sign acquisition for small private medical chambers. The design places
+guided self-registration and sensing in a patient-side booth, reduces the physician's interaction
+to a single button on a dedicated console, and coordinates both from one ATmega32. It requires no
+network, no host PC and no companion device, so no external service sits on the critical path of a
+consultation.
+
+The engineering result is that the composition fits. Queue arbitration, free-text alphanumeric
+entry over a 32-key matrix, two analog sensor channels and two character displays coexist within 23
+of the microcontroller's 32 I/O lines and a 73-byte record against 2~KB of SRAM. Bench validation
+placed temperature within $\pm 1^{\circ}$C and resting pulse within $\pm 3$~BPM of commercial
+reference instruments, with button-to-display latency below 1.2~s and queue ordering preserved
+under sustained cycling. We also documented the clock constraint that shaped the build. At the
+factory 1~MHz clock the baud generator cannot reach 38400~bps within the datasheet's error
+tolerance, and fuse-selecting the internal 8~MHz oscillator brings the error down to $0.16\%$.
+
+We are equally explicit about what remains unestablished. The sensing figures are engineering bounds
+from a bench comparison rather than validated clinical accuracy, the queue does not survive a power
+interruption, and guided self-registration has not been tested with patients in a working chamber.
+Each is addressable without abandoning the offline, low-cost premise the design rests on, and that
+premise is the paper's substantive claim. For a two-room practice, a system which keeps working when
+the network does not is worth more than one that reports to the cloud.

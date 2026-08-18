@@ -1,0 +1,22 @@
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{images/complete-hardware-architecture.png}
+    \caption{Proteus schematic of the complete hardware architecture. The
+      doctor-side I\textsuperscript{2}C LCD sits on PC0--PC1 and the
+      patient-side 4-bit LCD on PD2--PD7, the LM35 and pulse sensor occupy
+      ADC0 and ADC1, and the $4\times8$ keypad is driven from port B with row
+      sensing on PA4--PA7.}
+    \Description{A circuit schematic. At the left are a heart beat sensor module
+    and an LM35 temperature sensor, whose analog outputs run to the ADC0 and ADC1
+    pins of a central ATmega32 integrated circuit symbol. A pull-up resistor and
+    a momentary push button connect to another port A pin. To the upper right of
+    the microcontroller, a two-line I2C LCD module connects by just two wires
+    labelled SCL and SDA; further right, a separate four-bit parallel LCD module
+    connects by six wires from port D. Across the lower half of the figure is a
+    grid of thirty-two push-button switches arranged in four rows and eight
+    columns, labelled with digit-and-letter pairs such as 1/A and 2/B plus
+    dedicated keys for CapsLock, NumLock, Space, BackSpace, Prev and Next. The
+    eight column lines run to port B of the microcontroller and the four row
+    lines run to port A through four ten-kilohm pull-down resistors.}
+    \label{fig:proteus-complete}
+\end{figure*}

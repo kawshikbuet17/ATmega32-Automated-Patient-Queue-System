@@ -1,0 +1,18 @@
+Small private medical chambers in low-resource settings still order patients by paper
+tokens or verbal agreement, and they measure basic vitals inside the consultation room,
+where clinician time is scarcest. We present a stand-alone embedded system that moves both
+tasks onto a single low-cost microcontroller. Interaction is split across two separate
+stations. A patient-side self-service booth takes identifying details and acquires vital
+signs, while a doctor-side console shows the current patient's record and advances the
+queue on one button press. A single ATmega32 coordinates both stations, driving an LM35
+temperature sensor, an XD-58C optical pulse sensor, a $4\times8$ alphanumeric matrix
+keypad and two $16\times2$ character LCDs across 23 of its 32 general-purpose I/O lines.
+Unlike the IoT-first architectures that dominate prior work on embedded health monitoring,
+the system needs no network, no companion smartphone and no host PC, so a connectivity
+outage cannot stall a consultation. Bench validation against commercial reference
+instruments places temperature readings within $\pm 1^{\circ}$C and resting pulse within
+$\pm 3$~BPM, with button-to-display latency below 1.2~s and queue ordering preserved under
+sustained cycling. We also report the clock constraint that shaped the design. At the
+factory 1~MHz clock the baud generator cannot reach 38400~bps within the datasheet's error
+tolerance, and fuse-selecting the internal 8~MHz oscillator brings the error down to
+$0.16\%$.

@@ -1,0 +1,21 @@
+\begin{table}[t]
+  \caption{ATmega32 I/O allocation: 23 lines active, two reserved, seven free.}
+  \label{tab:pinout}
+  \small
+  \begin{tabular}{@{}llcl@{}}
+    \toprule
+    Port lines & Function & Lines & Direction \\
+    \midrule
+    PB0--PB7      & Keypad column drive        & 8 & Output \\
+    PA4--PA7      & Keypad row sense           & 4 & Input (pull-down) \\
+    PA0 (ADC0)    & LM35 temperature           & 1 & Analog in \\
+    PA1 (ADC1)    & XD-58C pulse sensor        & 1 & Analog in \\
+    PA2           & Doctor's call button       & 1 & Input (active low) \\
+    PC0--PC1      & I\textsuperscript{2}C, doctor LCD & 2 & Bidirectional \\
+    PD2--PD7      & Patient LCD, 4-bit parallel & 6 & Output \\
+    \midrule
+    PD0--PD1      & UART (RXD/TXD), reserved   & 2 & Reserved \\
+    PA3, PC2--PC7 & Unallocated                & 7 & n/a \\
+    \bottomrule
+  \end{tabular}
+\end{table}

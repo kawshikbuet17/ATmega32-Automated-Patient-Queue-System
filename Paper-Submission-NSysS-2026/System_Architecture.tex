@@ -1,0 +1,56 @@
+\input{diagrams/system-architecture-block-diagram}
+
+The system is organised as two interaction zones coordinated by one microcontroller
+(Fig.~\ref{fig:system-architecture-block-diagram}). It is worth stating precisely what is
+separated. The corners are distinct at the level of the user interface, since each has its own
+display, input device and workflow, and neither can observe the other's intermediate state. They
+are not separated at the level of computation, because a single ATmega32 scans the patient-side
+keypad, samples both sensors, maintains the queue, polls the doctor's button and refreshes both
+displays.
+
+Consolidating onto one controller costs some independence and buys three things under R1 and R4. It
+removes the need for an inter-controller link and its failure modes, it halves the controller bill of
+materials, and, most importantly, it makes the queue a single in-memory structure with one writer. No
+distributed-state problem remains to solve, since a record enqueued by the patient-side workflow is
+immediately visible to the doctor-side workflow.
+
+\subsection{Patient's Corner}
+The patient interface is a self-service booth built from four peripherals. A $4\times8$ matrix
+keypad, assembled from two commodity $4\times4$ membrane keypads, takes the name, age and mobile
+number. An LM35 supplies temperature and an XD-58C optical sensor supplies pulse rate. A
+$16\times2$ LCD in 4-bit parallel mode carries the prompts and the assigned serial number.
+
+Registration is a strictly sequential dialogue, and the sequencing is what makes R3 achievable. The
+LCD requests exactly one field at a time; the firmware will not advance until that field is accepted,
+and will not accept a sensor reading until it has settled. A patient therefore never has to decide
+what to do next, and cannot submit a record with a missing field. Only after every field is captured
+does the firmware assign a serial number and enqueue the record, displaying the number last so the
+patient leaves with a position they can reason about while waiting.
+
+Placing the sensors in the booth rather than on the physician's desk is what recovers consultation
+time. Temperature and pulse are acquired while the previous patient is still being seen, so
+acquisition latency is hidden behind the consultation it would otherwise have extended, and
+registration of later patients continues throughout.
+
+\subsection{Doctor's Corner}
+The physician's console is deliberately austere. It holds a $16\times2$ LCD on an
+I\textsuperscript{2}C backpack, showing the current patient's serial number, name, age,
+temperature and pulse, together with one momentary push button that calls the next patient.
+There is no menu, no mode and no second control. A press either brings the patient at the head
+of the queue onto the display or, once that patient has been seen, releases them and promotes
+the next. If the queue is empty the display says so. The physician reads the serial number and calls
+that patient in, already holding their vitals on screen. Reducing the console to one degree of freedom
+answers R2 directly, leaving no navigation state to remember between patients and no way to reach an
+unexpected screen mid-consultation.
+
+Moving this display onto the I\textsuperscript{2}C bus is a necessity rather than a preference.
+A second parallel LCD would consume six more I/O lines, and as Section~\ref{sec:hardware} shows,
+the pin budget cannot absorb that once the 32-key matrix and two analog channels are accounted
+for.
+
+\input{diagrams/proteus-complete-figure}
+
+Fig.~\ref{fig:proteus-complete} gives the schematic-level realisation, captured from the Proteus model
+used for pre-deployment verification. It makes the shared-I/O structure concrete, showing the keypad
+column drivers on port B, the row sense lines and both ADC inputs on port A, the
+I\textsuperscript{2}C pair on port C, and the parallel LCD on port D.

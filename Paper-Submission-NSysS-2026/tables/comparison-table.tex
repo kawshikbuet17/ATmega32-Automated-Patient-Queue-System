@@ -1,0 +1,23 @@
+\begin{table*}[t]
+  \caption{Representative prior systems compared against the proposed design.
+    ``Network required'' means the normal operating path depends on a Wi-Fi, GSM
+    or Internet link, and ``n/r'' marks a property the cited work does not
+    report.}
+  \label{tab:comparison}
+  \footnotesize
+  \begin{tabular}{@{}llccccc@{}}
+    \toprule
+    Work & Platform & Network & Queue & Vital & Patient self- & Local clinician \\
+         &          & required & arbitration & sensing & registration & display \\
+    \midrule
+    Dharmoji et al.~\cite{irjet2020}        & ESP8266 + Arduino        & Yes (Wi-Fi)  & No           & Pulse, temp. & No  & No \\
+    Rath et al.~\cite{rath2021}             & Raspberry Pi BSN         & Yes (MQTT/CoAP) & No        & BSN sensors  & No  & No \\
+    Talluri et al.~\cite{hrtemp2019}        & Arduino Uno + web app    & Yes (web)    & No           & Pulse, temp. & No  & No \\
+    Gummadi Lahari et al.~\cite{eqc2022}    & 8-bit PIC                & No           & FIFO         & No           & No  & Yes (LCD) \\
+    Arun and Priyesh~\cite{qgsm2013}        & MCU + GSM module         & Yes (GSM)    & FIFO         & No           & No  & Yes \\
+    Chin et al.~\cite{arpn2019}             & Arduino                  & n/r          & Priority     & No           & No  & Yes \\
+    \midrule
+    \textbf{This work}                      & \textbf{ATmega32}        & \textbf{No}  & \textbf{FCFS} & \textbf{Pulse, temp.} & \textbf{Yes} & \textbf{Yes (dual LCD)} \\
+    \bottomrule
+  \end{tabular}
+\end{table*}

@@ -1,0 +1,15 @@
+The validation reported in Section~\ref{sec:results} was performed on a laboratory bench prototype.
+No clinical deployment took place, no patients participated, and no patient records were collected
+or retained.
+
+The system nevertheless handles identifying personal data by design. Records live only in volatile
+memory, so the device accumulates no persistent identifiable data, and the storage proposed in
+Section~\ref{sec:limitations} reverses that property and would need a retention limit and
+encryption at rest. Because the console shows a patient's name beside their vitals in plain text,
+its placement on the desk is a confidentiality decision as well as an ergonomic one. The absence of
+connectivity is itself a privacy benefit, since no data leaves the device, and any wireless
+extension should therefore be treated as a change requiring authenticated pairing, encrypted
+transport and explicit patient consent. Finally, the temperature and pulse channels are triage
+indicators, accurate enough to draw a physician's attention and not accurate enough to support a
+clinical decision alone. Misreading that boundary is the most plausible route from this work to
+harm, and the system should not be deployed or extended as an autonomous screening device.

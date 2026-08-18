@@ -1,0 +1,84 @@
+The firmware is embedded C built with AVR-GCC and organised as a cooperative polling superloop with
+no interrupt service routines. Each pass tests the keypad, services the active registration state
+and tests the doctor's button. We chose this structure for auditability, since with no asynchronous
+preemption the worst-case path through the loop can be reasoned about by inspection. The cost is
+that every blocking operation, notably ADC acquisition and LCD refresh, extends the loop period for
+all other activity, and that is what bounds the latency figures in Section~\ref{sec:results}.
+
+\subsection{Registration State Machine}
+The patient-side dialogue is a seven-state machine, shown in Fig.~\ref{fig:firmware-fsm}.
+\textsf{IDLE} waits for a first keypress. The three data-entry states each own one field and one
+prompt. The two acquisition states drive the LM35 and the pulse sensor and display a countdown so
+the patient knows to hold still. \textsf{GENERATE\_SERIAL} allocates the serial number, enqueues the
+record and returns to \textsf{IDLE}.
+
+\input{diagrams/firmware-fsm}
+
+Two properties follow from the topology, and both matter for correctness. Enqueueing happens on exactly
+one transition, the one out of \textsf{GENERATE\_SERIAL}, which is reachable only after all five
+preceding states complete, so a record abandoned halfway cannot reach the queue. That is the
+structural guarantee behind the claim that partial records are impossible. Second, the
+\textsf{Prev} key provides backward transitions among the data-entry states, letting a mistyped field
+be corrected without restarting. The acquisition states offer no backward transition, because a
+reading already written into the record is not editable by keypress.
+
+\subsection{Alphanumeric Entry on a $4\times8$ Matrix}
+Name entry is the one place a $4\times4$ keypad would have been inadequate, and the reason the design
+pays twelve I/O lines for a $4\times8$ matrix. Scanning proceeds in two steps. With all eight columns
+driven high, the row nibble identifies which row is asserted, after which each column is pulled low
+in turn until the asserted row drops, identifying the column. The result is a key index of
+$\mathrm{row} \times 8 + \mathrm{col}$.
+
+Of the 32 keys, 26 carry the letters of the alphabet, four are editing and mode keys (space,
+backspace, a caps-lock toggle and an alphabetic/numeric toggle), and two are the \textsf{Prev} and
+\textsf{Next} navigation keys handled by the state machine rather than the character layer. The
+mapping is direct rather than multi-tap. The first three rows cover A--X at one keypress each and the
+fourth supplies Y and Z, so a name costs one press per character with no timing-based disambiguation
+to learn. A three-character indicator (\texttt{abc}, \texttt{ABC} or \texttt{123}) in the LCD's
+top-right corner keeps the active mode visible, and numeric mode remaps the first three columns to a
+telephone-style digit layout. The age and mobile-number fields enter that mode automatically.
+
+Contact bounce is handled in two stages. A detected press is re-tested after 20~ms and discarded if
+it has not persisted, after which the scanner is locked out for 100~ms to suppress repeats from a
+held key. Fields accumulate into a bounds-checked 16-character buffer, so an over-long entry
+saturates rather than overruns.
+
+\subsection{Queue Management}
+A simple circular buffer was implemented in C to hold patient records. Each record contains the
+assigned serial number; name, age and mobile number as entered at the keypad; the temperature
+reading; and the pulse reading in BPM. The record is laid out as fixed-width character fields,
+17~bytes each for name, age and mobile number, 10~bytes each for the two readings, and an integer
+serial, for 73~bytes per patient. The buffer depth is fixed at compile time, so the static footprint
+is $73 \times \mathrm{depth}$ bytes against the 2~KB of SRAM the ATmega32
+provides~\cite{microchip2020}. Fixed-width fields make that footprint exactly predictable and
+eliminate runtime allocation from the data path.
+
+The enqueue operation is initiated following successful data entry and sensor acquisition. The
+doctor's button initiates the dequeue process. Both execute in the same superloop on the same
+structure, so there is exactly one writer and no synchronisation is required. The doctor-side control
+has two-phase semantics that are not obvious from a single-button interface. The first press after
+the queue becomes non-empty promotes the head record onto the console without removing it, so it
+stays available for the duration of the consultation, and the next press retires it and promotes its
+successor. One button therefore serves both ``show me this patient'' and ``I am done with this
+patient''. The button is locked out for 500~ms after each press, and an emptied queue returns the
+console to an explicit no-patient message rather than a stale record.
+
+\subsection{Sensor Acquisition and Display}
+Both sensors share the single ADC through the input multiplexer. For temperature the raw conversion
+is scaled by the LM35 transfer function of 10~mV/$^{\circ}$C~\cite{ti2022} against the 2.56~V
+reference, and successive samples are averaged to suppress conversion noise before the result is
+committed. For heart rate the pulse waveform is sampled at fixed intervals and excursions above a
+threshold are treated as beats, with $\text{BPM} = (60 \times 1000)/T_{\text{beat}}$ where
+$T_{\text{beat}}$ is the interval in milliseconds between two consecutive detected peaks. The
+acquisition state commits no value until the reading has settled, which is the firmware's response to
+the motion sensitivity intrinsic to photoplethysmography~\cite{allen2007ppg}. Because the sampling
+interval comes from calibrated delay loops rather than a crystal-driven timer, the time base carries
+the $\pm 3\%$ tolerance of the internal RC oscillator, and Section~\ref{sec:results} treats this as
+an error source in the reported accuracy.
+
+The patient LCD carries the sequential prompts (``Enter Age'', ``Place Finger on Sensor'') followed by
+the serial number, and the doctor LCD is driven over TWI using Fleury's I\textsuperscript{2}C master
+library. Both use fixed field widths so a shorter value cannot leave residue from a previous patient
+on screen, a real hazard on a display written in place rather than cleared. The firmware was flashed
+over ISP with a USBasp programmer, which also set the CKSEL fuse bits, and the design was verified in
+the Proteus model of Fig.~\ref{fig:proteus-complete} before assembly.

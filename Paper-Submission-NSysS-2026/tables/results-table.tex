@@ -1,0 +1,18 @@
+\begin{table}[t]
+  \caption{Observed system performance. Deviations are engineering bounds from
+    bench comparison; see Section~\ref{sec:threats} for scope.}
+  \label{tab:experimental_results_table}
+  \small
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    Metric & Observation & Reference \\
+    \midrule
+    Temperature accuracy      & $\pm 1^{\circ}$C, $25$--$40^{\circ}$C & Digital thermometer \\
+    Pulse accuracy (resting)  & $\pm 3$ BPM                           & Fingertip oximeter \\
+    Button-to-display latency & $< 1.2$ s                             & Direct observation \\
+    Queue ordering            & Preserved under cycling               & Enqueue/dequeue cycles \\
+    Record footprint          & 73 bytes of 2~KB SRAM                 & Firmware layout \\
+    Operating mode            & Offline, stand-alone                  & n/a \\
+    \bottomrule
+  \end{tabular}
+\end{table}

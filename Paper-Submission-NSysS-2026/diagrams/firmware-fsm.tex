@@ -1,0 +1,65 @@
+\begin{figure}[t]
+\centering
+\resizebox{\columnwidth}{!}{%
+% Explicit coordinates throughout. Relative placement plus curved return paths
+% was letting the "enqueue record" and "Prev" labels land on top of the IDLE
+% box, so every node and label position below is pinned by hand.
+\begin{tikzpicture}[
+    st/.style={rectangle, draw, rounded corners, align=center, font=\small,
+               minimum width=2.5cm, minimum height=0.66cm},
+    lbl/.style={font=\scriptsize, inner sep=2pt},
+    ar/.style={-{Latex[length=2mm]}, thick},
+    dar/.style={-{Latex[length=2mm]}, thick, dashed}
+]
+
+% Forward path. Down the left column, across, then up the right column.
+\node[st] (idle)  at (0,0)      {\textsf{IDLE}};
+\node[st] (name)  at (0,-1.30)  {\textsf{ENTERING\_NAME}};
+\node[st] (age)   at (0,-2.60)  {\textsf{ENTERING\_AGE}};
+\node[st] (phone) at (0,-3.90)  {\textsf{ENTERING\_PHONE}};
+
+\node[st] (temp)  at (5.10,-3.90) {\textsf{ENTERING\_TEMP}};
+\node[st] (pulse) at (5.10,-2.60) {\textsf{ENTERING\_PULSE}};
+\node[st] (gen)   at (5.10,-1.30) {\textsf{GENERATE\_SERIAL}};
+
+\draw[ar] (idle)  -- node[lbl,right]{any key}      (name);
+\draw[ar] (name)  -- node[lbl,right]{\textsf{Next}} (age);
+\draw[ar] (age)   -- node[lbl,right]{\textsf{Next}} (phone);
+\draw[ar] (phone) -- node[lbl,above]{\textsf{Next}} (temp);
+
+% Right-column labels sit in the gap between the columns, clear of the
+% horizontal Next arrow at y = -3.90.
+\draw[ar] (temp)  -- node[lbl,left]{reading settled} (pulse);
+\draw[ar] (pulse) -- node[lbl,left]{reading settled} (gen);
+
+% Return path, routed well above the top row so nothing overlaps.
+\draw[ar] (gen.north) -- (5.10,0.95) --
+      node[lbl,above,pos=0.5]{enqueue record} (0,0.95) -- (idle.north);
+
+% Prev corrections, drawn as short arcs to the left of the left column.
+\draw[dar] (name.west)  to[out=170,in=190] (idle.west);
+\draw[dar] (age.west)   to[out=170,in=190]
+      node[lbl,left,pos=0.5]{\textsf{Prev}} (name.west);
+\draw[dar] (phone.west) to[out=170,in=190] (age.west);
+
+\end{tikzpicture}%
+}
+\caption{Patient-side registration state machine. Solid arrows are forward
+  transitions and dashed arrows are \textsf{Prev} corrections.
+  \textsf{GENERATE\_SERIAL} is the only state that enqueues, so a partial
+  record can never enter the queue.}
+\Description{A state diagram with seven boxes in two columns. The left column
+reads from top to bottom: IDLE, ENTERING underscore NAME, ENTERING underscore
+AGE, ENTERING underscore PHONE. An arrow labelled any key runs from IDLE down to
+ENTERING NAME, and two further arrows labelled Next continue down the column. A
+horizontal arrow labelled Next crosses from ENTERING PHONE to ENTERING
+underscore TEMP at the foot of the right column. The right column then runs
+upward, so an arrow labelled reading settled goes from ENTERING TEMP up to ENTERING
+underscore PULSE, and a second reading settled arrow continues up to GENERATE
+underscore SERIAL at the top of the right column. From there a long arrow
+labelled enqueue record runs up, then left across the top of the figure, and
+down into IDLE, closing the cycle. Three short dashed arcs on the far left curve
+upward from ENTERING PHONE to ENTERING AGE, from ENTERING AGE to ENTERING NAME,
+and from ENTERING NAME to IDLE; they are labelled Prev.}
+\label{fig:firmware-fsm}
+\end{figure}

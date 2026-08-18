@@ -1,0 +1,63 @@
+\subsection{Microcontroller Selection}
+Four properties of the ATmega32 map onto the requirements of Section~\ref{sec:intro}. Its 10-bit ADC
+is multiplexed across eight channels, removing the need for an external converter. Its 32
+general-purpose I/O lines are enough, but only just, to host a 32-key matrix alongside two displays
+and a control button. Its hardware TWI peripheral is what lets the doctor-side display leave the
+parallel bus. And it runs from a factory-calibrated internal RC oscillator, so no crystal is
+required~\cite{microchip2020}.
+
+\subsection{I/O and Resource Allocation}
+Table~\ref{tab:pinout} gives the complete allocation. Twenty-three of the 32 available lines are in
+active use and two more are reserved for the UART, leaving seven free.
+
+\input{tables/pinout-table}
+
+The keypad dominates the budget, taking twelve lines, more than a third of the total, to drive eight
+column outputs and sense four row inputs. That is the price of direct alphanumeric entry, and
+Section~\ref{sec:firmware} explains what it buys. Port A is heavily overloaded, carrying both analog
+inputs, the four row sense lines and the doctor's button. This is why the keypad driver masks its
+direction register rather than writing it wholesale, since an unguarded write to \texttt{DDRA} would
+reconfigure the ADC pins mid-acquisition. The display interface asymmetry also pays here. Had the
+doctor-side module used the parallel interface rather than an I\textsuperscript{2}C backpack, active
+usage would rise from 23 lines to 27, or 29 counting the reserved UART pair, leaving three of 32 free
+and no room for an expansion header.
+
+\subsection{Analog Front End}
+The LM35 produces 10~mV per degree Celsius with no external circuitry, so its output connects
+directly to ADC channel~0~\cite{ti2022}. The XD-58C is an integrated photoplethysmographic module
+with on-board amplification and filtering, and its analog output connects to channel~1. The converter
+uses the internal 2.56~V bandgap reference, which sets the least significant bit to 2.5~mV and,
+against the LM35 transfer function, gives a quantisation step of exactly $0.25^{\circ}$C. AREF is
+decoupled to ground through a 1~$\mu$F capacitor as the datasheet specifies~\cite{microchip2020}.
+
+One configuration choice deserves to be flagged rather than defended. The ADC prescaler is left at
+its minimum division factor of two, which at 8~MHz yields a 4~MHz conversion clock, whereas the
+datasheet specifies 50--200~kHz for full 10-bit accuracy~\cite{microchip2020}. The converter is
+therefore clocked well outside the range in which its rated resolution holds. We identify this as a
+likely contributor to the temperature spread reported in Section~\ref{sec:results} and as the
+cheapest available accuracy improvement, since it costs three bits in one register and no hardware.
+
+\subsection{Clock Configuration and Baud-Rate Error}
+\label{sec:calibration}
+The internal oscillator ships selected at 1~MHz, and we reconfigured it to 8~MHz through the CKSEL
+fuse bits. The reasoning is reproducible from the datasheet, so we set it out here.
+
+\input{tables/baud-table}
+
+The ATmega32 derives its UART bit clock by integer division of the system clock. In standard mode the
+divisor is $\mathrm{UBRR} = \lfloor f_{\mathrm{osc}}/(16 \times \mathrm{BAUD}) + 0.5 \rfloor - 1$,
+with 16 replaced by 8 when the double-speed bit U2X is set~\cite{microchip2020}. Because UBRR is an
+integer the achievable rate is quantised, coarsely so when $f_{\mathrm{osc}}$ is low, and the
+datasheet's recommended ceiling on receiver error for an 8-bit frame is $\pm 2.0\%$.
+Table~\ref{tab:baud} works this through. At 1~MHz, 38400~bps is unreachable, because the nearest
+standard-mode divisor yields 31250~bps for an error of $-18.6\%$, roughly nine times the limit, and
+double-speed mode improves it only to $+8.5\%$. At 8~MHz the same rate is reachable within
+$+0.16\%$ in either mode.
+
+One consequence is worth recording. The internal oscillator is specified to roughly
+$\pm 3\%$~\cite{microchip2020}, orders of magnitude looser than the tens of parts per million a quartz
+crystal offers. That is adequate for UART framing once the divisor error is this small, but it
+propagates into every delay-loop-derived interval in the firmware, including the pulse sampling time
+base. The serial path itself is unused by the delivered offline firmware, and establishing that
+38400~bps is attainable keeps the optional uplink of Section~\ref{sec:limitations} available without a
+hardware revision.

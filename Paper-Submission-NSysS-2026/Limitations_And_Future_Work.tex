@@ -1,0 +1,32 @@
+\textbf{Volatile storage.} The queue resides entirely in SRAM, so a power interruption discards every
+waiting record and the chamber falls back to the manual process the system replaced. Where grid supply
+is intermittent this is the most serious functional limitation of the current build. The ATmega32
+provides 1~KB of internal EEPROM, enough to mirror a working queue of the depth SRAM supports, and
+writing each record through on enqueue would make the queue survive a reset with no added components.
+An SD card would additionally permit a retained visit history, at the cost of an SPI interface and a
+filesystem layer.
+
+\textbf{Strict FCFS ordering.} The queue implements first-come, first-served with no override. This
+is the fair default and the behaviour the system was built to enforce, but clinical practice
+sometimes requires otherwise, whether for an acutely unwell patient or on the accessibility grounds
+motivating the priority scheme of Chin et al.~\cite{arpn2019}. A second console control promoting a
+selected record would address this, and any such mechanism must stay visible to waiting patients to
+avoid undermining the transparency that motivated automating the queue.
+
+\textbf{Corners tethered by cable.} Both corners wire back to one controller, so their separation is
+bounded by cable length and they cannot occupy different rooms as a larger chamber might require.
+The reserved UART lines and the 38400~bps operating point established in
+Section~\ref{sec:calibration} exist to lift this restriction, since a Bluetooth or Wi-Fi module on
+that port would let the console sit in a separate room and would support mobile waiting-list
+notification. Any such extension must preserve the property that the offline path keeps working
+when the link is down.
+
+\textbf{Accuracy and scale.} Section~\ref{sec:results} identifies three inexpensive corrections, namely
+setting the ADC prescaler to bring the conversion clock into the datasheet's 50--200~kHz window,
+storing a per-unit calibration offset for the LM35, and deriving the pulse sampling interval from a
+hardware timer rather than delay loops. None requires a different microcontroller or sensor. The
+architecture also extends to a multi-room variant with one booth feeding several consoles, where the
+queue structure generalises directly but the pin budget does not. Placing all consoles on the shared
+I\textsuperscript{2}C bus absorbs that growth. Finally, as Section~\ref{sec:threats} notes, guided
+self-registration has not been tested with patients, and a deployment study would test the claim this
+design rests on most heavily.

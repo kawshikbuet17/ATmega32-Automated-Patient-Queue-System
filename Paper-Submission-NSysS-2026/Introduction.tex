@@ -1,0 +1,53 @@
+A large share of outpatient care in South Asia is delivered not in hospitals but in private
+medical chambers, which are one- or two-room practices where a single physician sees patients
+in sequence, often with one assistant and no clinical information system. Two routine tasks
+dominate the overhead. The first is ordering the queue, typically managed with handwritten
+tokens, a paper register, or informal agreement among waiting patients. The second is
+recording basic vital signs, which usually happens inside the consultation room after the
+patient sits down, so it consumes the one resource the chamber has least of. Measurements of
+consultation length in Bangladeshi district and upazila hospitals put the average encounter
+at roughly nine minutes~\cite{das2021appointment}, and every minute a thermometer reading and
+a pulse count consume within that window is a minute not spent on history taking.
+
+Both tasks are mechanical, and both are amenable to automation. The question is what to automate them
+with. The dominant answer in the literature is a networked one. Instrument the patient, stream
+readings to a cloud dashboard, and let clinicians reach them through a web or mobile front
+end~\cite{irjet2020,rath2021,hrtemp2019}. That approach suits hospitals, and it aligns with the
+interoperability goals of the WHO global digital health strategy~\cite{who2021digital}. It is a poor
+fit for a two-room chamber, because it adds recurring connectivity cost, makes a consultation depend
+on an uplink that may be intermittent, and introduces a failure class the chamber staff cannot
+diagnose. That infrastructure assumptions imported from well-resourced settings tend not to survive
+contact with developing-region deployments is by now a familiar argument~\cite{brewer2005case}, and a
+queue that stalls because a Wi-Fi link dropped is worse than a queue managed on paper.
+
+The complementary work on embedded queue and token systems is offline by construction but scoped to a
+different problem. Those systems arbitrate service order at bank counters and ticket windows,
+sometimes adding infrastructure such as a GSM link~\cite{qgsm2013} and otherwise confining themselves
+to issuing a token number~\cite{eqc2022,arpn2019}. None captures clinical data.
+
+This paper takes the position that the two functions belong in the same device. We present a
+stand-alone system, built on one ATmega32 8-bit microcontroller, that guides a patient through
+self-registration, acquires body temperature and pulse rate before the patient enters the
+consultation room, assigns a queue position, and presents the record to the physician on a
+console advanced by a single button. Four requirements shaped it.
+
+\textbf{R1, no network dependency.} Registration, queueing and display must complete with no
+uplink, host PC or companion smartphone. \textbf{R2, bounded response.} The physician's control
+action must produce a visible result quickly and repeatably. \textbf{R3, operable by
+non-technical users.} A first-time patient must register from on-screen prompts alone.
+\textbf{R4, commodity parts.} Every component must be locally available at a price a
+single-physician practice can justify.
+
+R1 and R4 push toward an 8-bit microcontroller rather than an application processor, and that is what
+makes the engineering non-trivial. The ATmega32 offers 32 general-purpose I/O lines, 2~KB of SRAM, and
+one 10-bit ADC multiplexed across eight channels~\cite{microchip2020}. From that budget the system
+must scan a 32-key matrix, drive two character displays, sample two analog sensors and poll a control
+button.
+
+We contribute a complete embedded design integrating FCFS queue arbitration, guided self-registration
+with free-text name entry and pre-consultation vital acquisition on one ATmega32, with the full I/O
+and memory allocation reported (Sections~\ref{sec:hardware}--\ref{sec:firmware}); a dual-corner
+architecture separating patient-side input and sensing from doctor-side review and dequeue control
+(Section~\ref{sec:architecture}); the clock constraint we resolved to keep a future serial uplink
+viable (Section~\ref{sec:calibration}); and a bench evaluation with an explicit statement of its
+limits (Section~\ref{sec:results}).

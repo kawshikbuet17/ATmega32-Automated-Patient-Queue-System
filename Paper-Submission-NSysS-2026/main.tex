@@ -1,0 +1,163 @@
+%% ---------------------------------------------------------------------------
+%% 13th NSysS 2026 submission.
+%% Format: ACM Conference Proceedings (sigconf), per the NSysS 2026 CFP.
+%% ---------------------------------------------------------------------------
+
+%% ===========================================================================
+%%                        AUTHOR VISIBILITY SWITCH
+%%
+%%   \blindtrue   -> names HIDDEN.  Use for the NSysS double-blind submission.
+%%                   Adds the acmart "anonymous" and "review" options, prints an
+%%                   anonymous byline, suppresses the running-head author list,
+%%                   and drops the acknowledgments.
+%%
+%%   \blindfalse  -> names VISIBLE. Use for the camera-ready version.
+%%                   Prints the real author block from Author.tex, the
+%%                   "Paul et al." running head, and the acknowledgments.
+%%
+%% Edit the two lines below and nothing else: exactly one must be uncommented.
+%% ===========================================================================
+\newif\ifblind
+\blindtrue      % <-- ACTIVE: anonymous submission
+%\blindfalse    % <-- swap to this for camera-ready
+
+\ifblind
+  \documentclass[sigconf,anonymous,review]{acmart}
+\else
+  \documentclass[sigconf]{acmart}
+\fi
+
+%% acmart already provides graphicx, amsmath, amssymb, booktabs, url and
+%% hyperref. Do not re-load them, and do not alter margins or type sizes.
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric}
+
+\AtBeginDocument{%
+  \providecommand\BibTeX{{Bib\TeX}}}
+
+%% Rights and conference information. These are placeholders; ACM supplies the
+%% definitive commands in the rights confirmation email once the paper is
+%% accepted.
+\setcopyright{acmlicensed}
+\copyrightyear{2026}
+\acmYear{2026}
+\acmDOI{XXXXXXX.XXXXXXX}
+\acmConference[NSysS '26]{The 13th International Conference on Next
+  Generation Computing, Communication, Systems and Security}{December 17--19,
+  2026}{Cox's Bazar, Bangladesh}
+\acmISBN{978-1-4503-XXXX-X/2026/12}
+
+%% Insert the submission ID issued by CMT, then uncomment.
+%\acmSubmissionID{XXX}
+
+%% ===========================================================================
+%% PAGE BUDGET (NSysS limit: 8 pages including figures, tables and references)
+%%
+%% Figure sizes are fixed and must not be reduced. If the build still runs
+%% long, apply these in order; each is independent and reversible.
+%%
+%%   1. tables/comparison-table.tex -- drop the "Local clinician display"
+%%      column (its content is stated in the prose of Section 2).
+%%   2. Ethics_Statement.tex -- keep paragraph 1 and the final two sentences
+%%      of paragraph 2; delete the middle of paragraph 2.
+%%   3. tables/baud-table.tex -- delete the two 9600 bps rows; Section 4.4
+%%      only argues the 38400 bps case.
+%%   4. Experimental_Results_And_Discussion.tex -- delete the third bold
+%%      paragraph of Section 7.3 ("Throughput gains are argued...").
+%%   5. Last resort: comment out \input{diagrams/firmware-fsm} in
+%%      Software_And_Firmware_Implementation.tex and delete the
+%%      "(Fig.~\ref{fig:firmware-fsm})" reference in the sentence above it.
+%%
+%% If it comes in UNDER 7 pages there is room to restore detail: the clearest
+%% candidate is a short paragraph in Section 7.1 separating the three
+%% temperature error sources quantitatively.
+%% ===========================================================================
+
+\begin{document}
+
+%% The optional argument is the SHORT title used in the running head. It is
+%% required here: without it acmart sets the full title in the header, where it
+%% overruns the conference string and the two collide on every odd page.
+%% Keep it under roughly 45 characters.
+\title[Embedded Patient Queue and Vitals Management]{A Low-Cost
+  ATmega32-Based Embedded System for Automated Patient Queue and Health Data
+  Management in Private Medical Chambers}
+
+%% Under \blindtrue the acmart "anonymous" option suppresses this block and
+%% substitutes an anonymous byline, so the same file serves both versions.
+\input{Author}
+
+%% A \shortauthors with real names would print them in the running head, which
+%% would break double-blind review, so it is set only when names are visible.
+\ifblind\else
+  \renewcommand{\shortauthors}{Paul et al.}
+\fi
+
+\begin{abstract}
+\input{Abstract}
+\end{abstract}
+
+%% CCS concepts. The \ccsdesc lines below are what appear in the PDF. Before
+%% camera-ready, visit https://dl.acm.org/ccs, select these same concepts, and
+%% paste the generated \begin{CCSXML}...\end{CCSXML} block here: it prints
+%% nothing and only supplies the numeric ids ACM's metadata pipeline harvests.
+\ccsdesc[500]{Computer systems organization~Embedded systems}
+\ccsdesc[500]{Applied computing~Health care information systems}
+\ccsdesc[300]{Hardware~Sensor applications and deployments}
+
+\keywords{embedded systems, microcontroller, ATmega32, healthcare automation,
+  patient queue management, biomedical sensors, offline-first design,
+  low-resource settings}
+
+\maketitle
+
+\section{Introduction}
+\label{sec:intro}
+\input{Introduction}
+
+\section{Related Work}
+\label{sec:related}
+\input{Related_Work}
+
+\section{System Architecture}
+\label{sec:architecture}
+\input{System_Architecture}
+
+\section{Hardware Implementation}
+\label{sec:hardware}
+\input{Hardware_Implementation}
+
+\section{Software and Firmware Implementation}
+\label{sec:firmware}
+\input{Software_And_Firmware_Implementation}
+
+%% The former standalone "Clock Configuration and Debugging" section is now
+%% Section 4.4 inside Hardware Implementation, which is where the constraint
+%% belongs and saves a page of the 8-page budget. The \ref{sec:calibration}
+%% label moved with it, so all cross-references still resolve.
+%\input{System_Calibration_And_Debugging}
+
+\section{Experimental Results and Discussion}
+\label{sec:results}
+\input{Experimental_Results_And_Discussion}
+
+\section{Limitations and Future Work}
+\label{sec:limitations}
+\input{Limitations_And_Future_Work}
+
+\section{Conclusion}
+\input{Conclusion}
+
+\ifblind\else
+\begin{acks}
+The authors thank Dr.\ A.\ B.\ M.\ Alim Al Islam for supervising this work.
+\end{acks}
+\fi
+
+\section*{Ethics and Privacy Statement}
+\input{Ethics_Statement}
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{References}
+
+\end{document}
